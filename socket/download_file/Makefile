@@ -1,5 +1,5 @@
 
-TARGET=sock_server
+TARGET=sock_client
 CSRC=$(TARGET).c
 CSRC+=
 

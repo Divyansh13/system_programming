@@ -2,15 +2,18 @@
 #include<sys/socket.h>
 #include<unistd.h>
 #include<string.h>
+#include<fcntl.h>
 
 #define SOCKET_PATH "socketfile"
+#define FILE_PATH "file.txt"
 
 int main(void)
 {
-	int main_fd,srv_fd,err;
+	int main_fd,srv_fd,err,file_fd;
+	int file_sending=0;
 	struct sockaddr srv_addr,cli_addr;
 	socklen_t len;
-	char buf[50];
+	char file_buf[512];
 
 	// 0. Unlink socket file
 	unlink("so");
@@ -57,17 +60,41 @@ int main(void)
 	}
 	printf("Server accepted client connection\n");
 
+	printf("Waiting for client input..\n");
 	do
 	{
 		//9. Read
-		read(srv_fd,buf,sizeof(buf));
-		printf("Client sent: %s\n",buf);
+		if(!file_sending)
+		{
+			read(srv_fd,file_buf,sizeof(file_buf));
+			if(strcmp(file_buf,"download") != 0)
+			{
+				continue;
+			}
+			file_sending++;
+		}
+		printf("Sending file\n",file_buf);
 
-		//Write
-		printf("Server: ");
-		gets(buf);
-		write(srv_fd,buf,strlen(buf)+1);
-	}while(strcmp(buf,"bye") != 0);
+		file_fd=open(FILE_PATH,O_RDONLY);
+		if(file_fd == -1)
+		{
+			perror("open() call error: ");
+			_exit(1);
+		}
+		while((err=read(file_fd,file_buf,sizeof(file_buf))) != 0)
+		{
+			if(err == -1)
+			{
+				perror("read() call error: ");
+				_exit(1);
+			}
+			write(srv_fd,file_buf,err);
+			printf("#");
+		}
+		file_sending=0;
+		printf("\nFile sent successfully\n");
+		break;
+	}while(strcmp(file_buf,"stop") != 0);
 
 	//12. CLose target socket
 	close(srv_fd);
