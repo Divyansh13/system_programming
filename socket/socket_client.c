@@ -38,7 +38,7 @@ int main(void)
 		//7. Write to socket
 		printf("Client: ");
 		gets(buf);
-		write(client_fd,buf,sizeof(buf));
+		write(client_fd,buf,strlen(buf)+1);
 
 		//10. Read from socket
 		read(client_fd,buf,sizeof(buf));
