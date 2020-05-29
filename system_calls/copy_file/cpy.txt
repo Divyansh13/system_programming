@@ -1,3 +1,0 @@
-hello this is a test file
-in newline to test copy file program
-this is last line
